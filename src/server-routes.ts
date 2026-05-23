@@ -1020,7 +1020,9 @@ Output ONLY a valid JSON object. No markdown, no explanation.`,
         const allowedRatings = (ratings as string).split(',').map(Number);
         const before = finalHotels.length;
 
-        finalHotels = finalHotels.filter(h => h.starRating > 0 && allowedRatings.includes(h.starRating));
+        // starRating=0 means we couldn't extract it from raw data — the API already filtered
+        // by star class, so give these the benefit of the doubt rather than dropping them.
+        finalHotels = finalHotels.filter(h => h.starRating === 0 || allowedRatings.includes(h.starRating));
         console.log(`[Filter] starRating: ${before} -> ${finalHotels.length}`);
 
         const maxStar = Math.max(...allowedRatings);
