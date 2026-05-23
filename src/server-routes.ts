@@ -405,14 +405,29 @@ Output ONLY a valid JSON object. No markdown, no explanation.`,
       }).slice(0, ratings ? 300 : 80);
 
       if (ratings) {
+        // Hotels with unknown star (=0) need enrichment to be classified — prioritize them.
+        // Among known-star hotels, sort by review score descending.
         hotels.sort((a, b) => {
+          const aStar = (() => {
+            const cands = [a.hotel_class, a.class, a.star_rating, a.propertyClass, a.quality_class];
+            for (const c of cands) { if (c) { const m = c.toString().match(/(\d)/); if (m) return parseInt(m[1]); } }
+            return 0;
+          })();
+          const bStar = (() => {
+            const cands = [b.hotel_class, b.class, b.star_rating, b.propertyClass, b.quality_class];
+            for (const c of cands) { if (c) { const m = c.toString().match(/(\d)/); if (m) return parseInt(m[1]); } }
+            return 0;
+          })();
+          // Unknown-star hotels first, then by review score desc
+          if (aStar === 0 && bStar !== 0) return -1;
+          if (bStar === 0 && aStar !== 0) return 1;
           const sa = parseFloat((a.reviewScore || a.review_score || a.rating || 0).toString());
           const sb = parseFloat((b.reviewScore || b.review_score || b.rating || 0).toString());
           return sb - sa;
         });
       }
 
-      const enrichCap = ratings ? 60 : 30;
+      const enrichCap = ratings ? 120 : 40;
       const hotelsToEnrich = hotels.slice(0, enrichCap);
       const hasAmenityFilter = breakfast === 'true' || pool === 'true' || gym === 'true' || wifi === 'true' || freeCancellation === 'true';
       const enrichedHotels: any[] = [];
