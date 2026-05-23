@@ -291,7 +291,7 @@ Output ONLY a valid JSON object. No markdown, no explanation.`,
         }
       };
 
-      const totalPages = ratings ? 5 : 3;
+      const totalPages = ratings ? 8 : 4;
       const pageNums = Array.from({ length: totalPages }, (_, i) => String(i + 1));
       let pages = await Promise.all(pageNums.map(p => fetchPage(p)));
 
@@ -412,12 +412,12 @@ Output ONLY a valid JSON object. No markdown, no explanation.`,
         });
       }
 
-      const enrichCap = 20;
+      const enrichCap = ratings ? 60 : 30;
       const hotelsToEnrich = hotels.slice(0, enrichCap);
       const hasAmenityFilter = breakfast === 'true' || pool === 'true' || gym === 'true' || wifi === 'true' || freeCancellation === 'true';
       const enrichedHotels: any[] = [];
 
-      const batchSize = 15;
+      const batchSize = 20;
       for (let i = 0; i < hotelsToEnrich.length; i += batchSize) {
         const batch = hotelsToEnrich.slice(i, i + batchSize);
         const batchResults = await Promise.all(batch.map(async (h: any) => {
@@ -1036,7 +1036,7 @@ Output ONLY a valid JSON object. No markdown, no explanation.`,
         filterLog.push(`Ratings [${allowedRatings}]: ${before} -> ${finalHotels.length}`);
       }
 
-      if (hasAmenityFilter && finalHotels.length > 0 && finalHotels.length <= 60) {
+      if (hasAmenityFilter && finalHotels.length > 0 && finalHotels.length <= 80) {
         console.log(`[Amenity] fetching facilities for ${finalHotels.length} hotels in parallel batches...`);
         const amenityBatchSize = 10;
         for (let i = 0; i < finalHotels.length; i += amenityBatchSize) {
