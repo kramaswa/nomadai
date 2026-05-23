@@ -1,0 +1,97 @@
+// ===============================================================
+// Assumed Data Model
+// ===============================================================
+//
+// Collection: /users/{userId}
+// Document ID: userId (Auth UID)
+// Fields:
+//   - uid: string (required) - Auth UID
+//   - email: string (required) - User email
+//   - displayName: string (optional) - User display name
+//   - preferences: string (optional) - Natural language preferences
+//   - createdAt: timestamp (required) - Creation time
+//
+// Collection: /users/{userId}/savedHotels/{hotelId}
+// Document ID: hotelId
+// Fields:
+//   - userId: string (required) - Owner UID
+//   - hotelId: string (required) - Hotel ID
+//   - hotelName: string (required) - Hotel name
+//   - hotelData: map (required) - Full hotel data
+//   - savedAt: timestamp (required) - Saved time
+//
+// ===============================================================
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+         (request.auth.token.email == "Kishore6487@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'email', 'createdAt']) &&
+             data.uid is string &&
+             data.email is string &&
+             data.email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$") &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidSavedHotel(data) {
+      return data.keys().hasAll(['userId', 'hotelId', 'hotelName', 'hotelData', 'savedAt']) &&
+             data.userId is string &&
+             data.hotelId is string &&
+             data.hotelName is string &&
+             data.hotelName.size() < 200 &&
+             data.hotelData is map &&
+             data.savedAt is timestamp;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      // Users can only read their own profile
+      allow read: if isOwner(userId) || isAdmin();
+      
+      // Users can only create their own profile
+      allow create: if isOwner(userId) && isValidUser(request.resource.data) && (!('role' in request.resource.data) || isAdmin());
+      
+      // Users can only update their own profile, and cannot change their role unless admin
+      allow update: if isOwner(userId) && 
+                    isValidUser(request.resource.data) && 
+                    (request.resource.data.role == resource.data.role || isAdmin()) &&
+                    request.resource.data.uid == resource.data.uid;
+      
+      allow delete: if isAdmin();
+
+      match /savedHotels/{hotelId} {
+        allow read: if isOwner(userId) || isAdmin();
+        allow create: if isOwner(userId) && isValidSavedHotel(request.resource.data);
+        allow update: if isOwner(userId) && isValidSavedHotel(request.resource.data) && request.resource.data.userId == resource.data.userId;
+        allow delete: if isOwner(userId) || isAdmin();
+      }
+    }
+
+    // Default deny
+    match /{path=**} {
+      allow read, write: if false;
+    }
+  }
+}

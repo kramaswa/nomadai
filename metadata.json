@@ -1,0 +1,5 @@
+{
+  "name": "NomadAI",
+  "description": "A natural language powered travel agent for personalized hotel bookings.",
+  "requestFramePermissions": []
+}

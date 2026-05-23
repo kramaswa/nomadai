@@ -1,0 +1,40 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Stores user information and travel preferences.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "preferences": { "type": "string", "description": "Natural language travel preferences" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email"]
+    },
+    "SavedHotel": {
+      "title": "Saved Hotel",
+      "description": "Hotels saved by the user.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "hotelId": { "type": "string" },
+        "hotelName": { "type": "string" },
+        "hotelData": { "type": "object", "description": "Full hotel data blob" },
+        "savedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "hotelId"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profile documents"
+    },
+    "/users/{userId}/savedHotels/{hotelId}": {
+      "schema": "SavedHotel",
+      "description": "Subcollection of saved hotels for a user"
+    }
+  }
+}
