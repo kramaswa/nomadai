@@ -110,14 +110,14 @@ export function setupRoutes(
   });
 
   app.get("/api/hotel-redirect", (req, res) => {
-    const { name, bookingUrl, checkIn, checkOut, adults } = req.query as Record<string, string>;
+    const { name, checkIn, checkOut, adults } = req.query as Record<string, string>;
 
-    if (bookingUrl && (bookingUrl.startsWith("https://") || bookingUrl.startsWith("http://"))) {
-      return res.redirect(302, bookingUrl);
-    }
+    const params = new URLSearchParams({ q: name || "hotel" });
+    if (checkIn) params.set("checkin", checkIn);
+    if (checkOut) params.set("checkout", checkOut);
+    if (adults) params.set("guests", adults);
 
-    const q = encodeURIComponent(`${name || ""} hotel`);
-    return res.redirect(302, `https://www.google.com/travel/hotels?q=${q}`);
+    return res.redirect(302, `https://www.google.com/travel/hotels?${params.toString()}`);
   });
 
   app.post("/api/parse-query", async (req, res) => {
