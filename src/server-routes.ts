@@ -74,6 +74,14 @@ function mapSerpProperty(prop: any, city: string, adultsNum: number): any {
     prop.images?.[0]?.thumbnail ||
     `https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=1000`;
 
+  const nearbyPlaces: string = ((prop.nearby_places || []) as any[])
+    .slice(0, 4)
+    .map((p: any) => {
+      const t = (p.transportations || [])[0];
+      return t ? `${p.name} (${t.duration} ${t.type.toLowerCase()})` : p.name;
+    })
+    .join(", ");
+
   return {
     hotelId: prop.property_token || prop.name || Math.random().toString(),
     name: prop.name || "Hotel",
@@ -94,6 +102,7 @@ function mapSerpProperty(prop: any, city: string, adultsNum: number): any {
     cleanlinessScore: 0,
     adults: adultsNum,
     bookingUrl: prop.link || "",
+    nearbyPlaces,
     starFallbackCandidate: false
   };
 }
@@ -183,7 +192,8 @@ Output ONLY a valid JSON object. No markdown, no explanation.`,
         h.pool && "pool",
         h.gym && "gym",
       ].filter(Boolean).join(", ");
-      return `${i + 1}. ${h.name} — ${h.starRating}★, rated ${h.avgRating}/10 (${h.reviews} reviews), $${h.price?.total}/night${amenities ? `, ${amenities}` : ""}`;
+      const nearby = h.nearbyPlaces ? `\n   Nearby: ${h.nearbyPlaces}` : "";
+      return `${i + 1}. ${h.name} — ${h.starRating}★, rated ${h.avgRating}/10 (${h.reviews} reviews), $${h.price?.total}/night${amenities ? `, ${amenities}` : ""}${nearby}`;
     }).join("\n");
 
     try {
@@ -192,9 +202,9 @@ Output ONLY a valid JSON object. No markdown, no explanation.`,
         max_tokens: 200,
         system: `You are NomadAI, a concise travel recommendation assistant.
 
-The data you have for each hotel: name, star rating, overall rating out of 10, review count, price per night, and an amenities list.
-From this data you CAN reason about: overall quality (rating + reviews), value for money (price vs. star rating and rating), and any amenity explicitly listed.
-You cannot verify: views, room sizes, cleanliness, exact location or centrality, noise levels, decor — anything not derivable from the fields above.
+The data you have for each hotel: name, star rating, overall rating out of 10, review count, price per night, amenities list, and nearby places with walking/transit times.
+From this data you CAN reason about: overall quality (rating + reviews), value for money (price vs. star rating and rating), any listed amenity, and location/centrality (from nearby places — landmarks, metro, city areas within walking distance indicate central locations).
+You cannot verify: views, room sizes, cleanliness scores, noise levels, decor — anything not derivable from the fields above.
 
 Write 2-3 sentences:
 1. Recommend the single best hotel by name. Cite rating, review count, price, and address any user preference you CAN assess from the data (value, quality, listed amenities).
