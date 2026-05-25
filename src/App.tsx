@@ -1050,7 +1050,8 @@ const SearchResults = () => {
         q: `${query} · ${refinement}`,
       });
       if (updated.neighborhood) params.set('neighborhood', updated.neighborhood);
-      if (updated.ratings?.length) params.set('ratings', updated.ratings.join(','));
+      const ratingsArr = Array.isArray(updated.ratings) ? updated.ratings : updated.ratings ? [updated.ratings] : [];
+      if (ratingsArr.length) params.set('ratings', ratingsArr.join(','));
       if (updated.breakfast) params.set('breakfast', 'true');
       if (updated.pool) params.set('pool', 'true');
       if (updated.gym) params.set('gym', 'true');
@@ -1061,8 +1062,9 @@ const SearchResults = () => {
       if (updated.sortBy) params.set('sortBy', updated.sortBy);
       setRefinement('');
       navigate(`/search?${params.toString()}`);
-    } catch {
-      toast.error('Refinement failed. Please try again.');
+    } catch (err: any) {
+      console.error('Refinement error:', err);
+      toast.error(`Refinement failed: ${err?.message || 'Unknown error'}`);
     } finally {
       setRefining(false);
     }

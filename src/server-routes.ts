@@ -222,11 +222,12 @@ Output ONLY a valid JSON object with these fields: city, neighborhood, adults, c
 
       const text = response.content[0]?.type === "text" ? response.content[0].text.trim() : "";
       const jsonText = text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
+      console.log("Refine raw response:", jsonText.slice(0, 200));
       const parsed = JSON.parse(jsonText);
       res.json(parsed);
     } catch (e: any) {
-      console.error("Refine query error:", e);
-      res.status(500).json({ error: "Failed to refine query" });
+      console.error("Refine query error:", e.message || e);
+      res.status(500).json({ error: `Failed to refine query: ${e.message}` });
     }
   });
 
