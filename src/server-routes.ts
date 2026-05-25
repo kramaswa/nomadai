@@ -275,15 +275,9 @@ Rules: no markdown, no asterisks, plain text only. Never state a fact not deriva
 
       const adultsNum = parseInt((adults as string) || "1", 10);
 
-      // SerpApi sort_by: 3=lowest price, 8=highest rating, 13=most reviewed, 1=relevance
-      const sortMap: Record<string, string> = {
-        price_ascending: "3",
-        review_score: "8",
-        distance_from_search: "1",
-        value_for_money: "8",
-        popularity: "13"
-      };
-      const serpSort = sortMap[(sortBy as string) || "popularity"] || "13";
+      // Always fetch with most-reviewed sort for consistent hotel pool across queries.
+      // Client-side sorting handles user preferences without changing which hotels SerpApi returns.
+      const serpSort = "13";
 
       const buildParams = (pageToken?: string) => {
         const p = new URLSearchParams({
