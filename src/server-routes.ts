@@ -381,12 +381,17 @@ Rules: no markdown, no asterisks, plain text only. Never state a fact not deriva
         console.log(`[Filter] starRating [${allowedRatings}]: ${before} -> ${finalHotels.length}`);
       }
 
-      // Review score filter
+      // minReviewScore is a soft sort — float high-rated hotels to the top rather than
+      // excluding the rest (ratings from SerpApi can be sparse or scaled differently).
       if (minReviewScore) {
         const score = parseFloat(minReviewScore as string);
-        const before = finalHotels.length;
-        finalHotels = finalHotels.filter((h) => h.avgRating === 0 || h.avgRating >= score);
-        console.log(`[Filter] minReviewScore (${score}): ${before} -> ${finalHotels.length}`);
+        finalHotels.sort((a, b) => {
+          const aAbove = a.avgRating === 0 || a.avgRating >= score ? 1 : 0;
+          const bAbove = b.avgRating === 0 || b.avgRating >= score ? 1 : 0;
+          if (bAbove !== aAbove) return bAbove - aAbove;
+          return b.avgRating - a.avgRating;
+        });
+        console.log(`[Sort] minReviewScore (${score}): floated qualifying hotels to top`);
       }
 
       // Max price filter
