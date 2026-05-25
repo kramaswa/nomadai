@@ -992,7 +992,7 @@ const SearchResults = () => {
             signal: controller.signal
           })
             .then(r => r.json())
-            .then(d => { if (d.recommendation) setRecommendation(d.recommendation); })
+            .then(d => { if (d.recommendation) setRecommendation(d.recommendation.replace(/\*\*/g, '')); })
             .catch(() => {})
             .finally(() => setLoadingRec(false));
         }

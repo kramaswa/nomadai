@@ -190,7 +190,7 @@ Output ONLY a valid JSON object. No markdown, no explanation.`,
       const response = await anthropic.messages.create({
         model: "claude-haiku-4-5-20251001",
         max_tokens: 150,
-        system: `You are NomadAI, a concise travel recommendation assistant. Given a user's search and the top hotel results, write exactly 2 sentences recommending the single best option and why. Start with the hotel name. Be specific — mention price, rating, or a standout amenity. No fluff, no hedging.`,
+        system: `You are NomadAI, a concise travel recommendation assistant. Given a user's search and the top hotel results, write exactly 2 sentences recommending the single best option. Start with the hotel name. Be specific — cite price, rating, or review count. Important rules: (1) No markdown, no asterisks, plain text only. (2) Only mention amenities or features (like views, location, spa) if they appear in the hotel data — never invent or assume features not listed.`,
         messages: [{
           role: "user",
           content: `User searched for: "${query}"\n\nTop results:\n${hotelList}`
