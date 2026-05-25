@@ -904,6 +904,8 @@ const SearchResults = () => {
   const [hotels, setHotels] = useState<Hotel[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchNote, setSearchNote] = useState<string | null>(null);
+  const [recommendation, setRecommendation] = useState<string | null>(null);
+  const [loadingRec, setLoadingRec] = useState(false);
   const [sortKeys, setSortKeysState] = useState<SortOption[]>(() => {
     try { return JSON.parse(sessionStorage.getItem('nomadai-sort-keys') || '[]'); }
     catch { return []; }
@@ -980,6 +982,20 @@ const SearchResults = () => {
 
         setSearchNote(note);
         setHotels(hotels);
+
+        if (hotels.length > 0 && query) {
+          setLoadingRec(true);
+          fetch('/api/hotels/recommend', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query, hotels: hotels.slice(0, 5) }),
+            signal: controller.signal
+          })
+            .then(r => r.json())
+            .then(d => { if (d.recommendation) setRecommendation(d.recommendation); })
+            .catch(() => {})
+            .finally(() => setLoadingRec(false));
+        }
       } catch (err: any) {
         if (err.name !== 'AbortError') toast.error("Failed to fetch hotels.");
       } finally {
@@ -987,6 +1003,7 @@ const SearchResults = () => {
       }
     };
 
+    setRecommendation(null);
     fetchHotels();
     return () => controller.abort();
   }, [searchParams.toString()]);
@@ -1038,7 +1055,7 @@ const SearchResults = () => {
       </div>
 
       {searchNote && hotels.length > 0 && (
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-10 p-5 bg-white/5 border border-white/10 rounded-3xl flex items-center gap-4 text-white/80 backdrop-blur-sm"
@@ -1047,6 +1064,25 @@ const SearchResults = () => {
             <Sparkles className="w-5 h-5 text-amber-400" />
           </div>
           <p className="text-sm md:text-base leading-relaxed">{searchNote}</p>
+        </motion.div>
+      )}
+
+      {(loadingRec || recommendation) && hotels.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8 p-5 bg-orange-500/10 border border-orange-500/20 rounded-3xl flex items-start gap-4 backdrop-blur-sm"
+        >
+          <div className="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center shrink-0 mt-0.5">
+            <Sparkles className="w-5 h-5 text-orange-400" />
+          </div>
+          <div>
+            <p className="text-orange-400 text-xs font-bold uppercase tracking-widest mb-1">NomadAI Recommends</p>
+            {loadingRec && !recommendation
+              ? <p className="text-white/50 text-sm animate-pulse">Analyzing results…</p>
+              : <p className="text-white/90 text-sm md:text-base leading-relaxed">{recommendation}</p>
+            }
+          </div>
         </motion.div>
       )}
 

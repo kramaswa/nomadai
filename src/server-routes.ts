@@ -170,6 +170,41 @@ Output ONLY a valid JSON object. No markdown, no explanation.`,
     }
   });
 
+  app.post("/api/hotels/recommend", async (req, res) => {
+    const { query, hotels } = req.body as { query: string; hotels: any[] };
+    if (!query || !Array.isArray(hotels) || hotels.length === 0) {
+      return res.status(400).json({ error: "query and hotels are required" });
+    }
+
+    const top = hotels.slice(0, 5);
+    const hotelList = top.map((h: any, i: number) => {
+      const amenities = [
+        h.breakfast && "breakfast included",
+        h.pool && "pool",
+        h.gym && "gym",
+      ].filter(Boolean).join(", ");
+      return `${i + 1}. ${h.name} — ${h.starRating}★, rated ${h.avgRating}/10 (${h.reviews} reviews), $${h.price?.total}/night${amenities ? `, ${amenities}` : ""}`;
+    }).join("\n");
+
+    try {
+      const response = await anthropic.messages.create({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 150,
+        system: `You are NomadAI, a concise travel recommendation assistant. Given a user's search and the top hotel results, write exactly 2 sentences recommending the single best option and why. Start with the hotel name. Be specific — mention price, rating, or a standout amenity. No fluff, no hedging.`,
+        messages: [{
+          role: "user",
+          content: `User searched for: "${query}"\n\nTop results:\n${hotelList}`
+        }]
+      });
+
+      const text = response.content[0]?.type === "text" ? response.content[0].text.trim() : "";
+      res.json({ recommendation: text });
+    } catch (e: any) {
+      console.error("Recommend error:", e);
+      res.status(500).json({ error: "Failed to generate recommendation" });
+    }
+  });
+
   app.get("/api/hotels/search", async (req, res) => {
     const hardTimeout = setTimeout(() => {
       if (!res.headersSent) {
