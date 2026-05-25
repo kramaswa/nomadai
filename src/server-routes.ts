@@ -186,6 +186,50 @@ Output ONLY a valid JSON object. No markdown, no explanation.`,
     }
   });
 
+  app.post("/api/refine-query", async (req, res) => {
+    const { currentParams, refinement } = req.body as { currentParams: Record<string, string>; refinement: string };
+    if (!refinement || !currentParams) return res.status(400).json({ error: "refinement and currentParams are required" });
+
+    const todayDate = new Date();
+    const today = todayDate.toISOString().split("T")[0];
+
+    try {
+      const response = await anthropic.messages.create({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 512,
+        system: `You are a travel search assistant. A user has an existing hotel search and wants to refine it.
+Current Date: ${today}
+
+Given the current search parameters and a refinement instruction, return an updated JSON object.
+Rules:
+- Only change what the refinement specifies. Keep everything else identical to the current params.
+- "cheaper" / "budget" -> lower maxPrice or remove star ratings
+- "remove X" / "no X" -> set X to false or remove it
+- "add X" / "with X" -> set X to true
+- "closer to Y" / "near Y" -> update neighborhood to Y
+- "better rated" / "higher reviews" -> increase minReviewScore
+- "more central" -> update sortBy to distance_from_search
+- Date changes: update checkInDate / checkOutDate accordingly
+- ratings is an array of integers e.g. [4,5]
+- neighborhood: district/area within the city, empty string if none
+
+Output ONLY a valid JSON object with these fields: city, neighborhood, adults, checkInDate, checkOutDate, ratings, minReviewScore, breakfast, pool, gym, wifi, freeCancellation, maxPrice, sortBy. No markdown.`,
+        messages: [{
+          role: "user",
+          content: `Current search params: ${JSON.stringify(currentParams)}\n\nRefinement: "${refinement}"`
+        }]
+      });
+
+      const text = response.content[0]?.type === "text" ? response.content[0].text.trim() : "";
+      const jsonText = text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
+      const parsed = JSON.parse(jsonText);
+      res.json(parsed);
+    } catch (e: any) {
+      console.error("Refine query error:", e);
+      res.status(500).json({ error: "Failed to refine query" });
+    }
+  });
+
   app.post("/api/hotels/recommend", async (req, res) => {
     const { query, hotels } = req.body as { query: string; hotels: any[] };
     if (!query || !Array.isArray(hotels) || hotels.length === 0) {

@@ -907,6 +907,8 @@ const SearchResults = () => {
   const [searchNote, setSearchNote] = useState<string | null>(null);
   const [recommendation, setRecommendation] = useState<string | null>(null);
   const [loadingRec, setLoadingRec] = useState(false);
+  const [refinement, setRefinement] = useState('');
+  const [refining, setRefining] = useState(false);
   const [sortKeys, setSortKeysState] = useState<SortOption[]>(() => {
     try { return JSON.parse(sessionStorage.getItem('nomadai-sort-keys') || '[]'); }
     catch { return []; }
@@ -1011,6 +1013,61 @@ const SearchResults = () => {
     return () => controller.abort();
   }, [searchParams.toString()]);
 
+  const handleRefine = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!refinement.trim() || refining) return;
+    setRefining(true);
+    try {
+      const currentParams: Record<string, string> = {
+        city: searchParams.get('city') || '',
+        neighborhood: searchParams.get('neighborhood') || '',
+        adults: searchParams.get('adults') || '1',
+        checkInDate: searchParams.get('checkIn') || '',
+        checkOutDate: searchParams.get('checkOut') || '',
+        ratings: searchParams.get('ratings') || '',
+        minReviewScore: searchParams.get('minReviewScore') || '',
+        breakfast: searchParams.get('breakfast') || '',
+        pool: searchParams.get('pool') || '',
+        gym: searchParams.get('gym') || '',
+        wifi: searchParams.get('wifi') || '',
+        freeCancellation: searchParams.get('freeCancellation') || '',
+        maxPrice: searchParams.get('maxPrice') || '',
+        sortBy: searchParams.get('sortBy') || '',
+      };
+      const resp = await fetch('/api/refine-query', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentParams, refinement }),
+      });
+      const updated = await resp.json();
+      if (updated.error) { toast.error('Could not refine search.'); return; }
+
+      const params = new URLSearchParams({
+        city: updated.city || currentParams.city,
+        adults: String(updated.adults || 1),
+        checkIn: updated.checkInDate || currentParams.checkInDate,
+        checkOut: updated.checkOutDate || currentParams.checkOutDate,
+        q: `${query} · ${refinement}`,
+      });
+      if (updated.neighborhood) params.set('neighborhood', updated.neighborhood);
+      if (updated.ratings?.length) params.set('ratings', updated.ratings.join(','));
+      if (updated.breakfast) params.set('breakfast', 'true');
+      if (updated.pool) params.set('pool', 'true');
+      if (updated.gym) params.set('gym', 'true');
+      if (updated.wifi) params.set('wifi', 'true');
+      if (updated.freeCancellation) params.set('freeCancellation', 'true');
+      if (updated.maxPrice) params.set('maxPrice', String(updated.maxPrice));
+      if (updated.minReviewScore) params.set('minReviewScore', String(updated.minReviewScore));
+      if (updated.sortBy) params.set('sortBy', updated.sortBy);
+      setRefinement('');
+      navigate(`/search?${params.toString()}`);
+    } catch {
+      toast.error('Refinement failed. Please try again.');
+    } finally {
+      setRefining(false);
+    }
+  };
+
   return (
     <div className="pt-32 pb-20 px-6 max-w-7xl mx-auto">
       <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -1069,6 +1126,23 @@ const SearchResults = () => {
           <p className="text-sm md:text-base leading-relaxed">{searchNote}</p>
         </motion.div>
       )}
+
+      <form onSubmit={handleRefine} className="mb-8 flex gap-3">
+        <input
+          type="text"
+          value={refinement}
+          onChange={e => setRefinement(e.target.value)}
+          placeholder='Refine your search… e.g. "Make it cheaper" or "Add a pool" or "Near the beach"'
+          className="flex-1 bg-white/5 border border-white/10 rounded-full px-5 py-3 text-white placeholder-white/30 text-sm outline-none focus:border-orange-500/50 transition-all"
+        />
+        <button
+          type="submit"
+          disabled={!refinement.trim() || refining}
+          className="bg-orange-500 hover:bg-orange-400 disabled:opacity-40 text-white px-6 py-3 rounded-full text-sm font-bold transition-all shrink-0"
+        >
+          {refining ? 'Refining…' : 'Refine'}
+        </button>
+      </form>
 
       {(loadingRec || recommendation) && hotels.length > 0 && (
         <motion.div
