@@ -200,7 +200,12 @@ Output ONLY a valid JSON object. No markdown, no explanation.`,
         h.gym && "gym",
       ].filter(Boolean).join(", ");
       const nearby = h.nearbyPlaces ? `\n   Nearby: ${h.nearbyPlaces}` : "";
-      return `${i + 1}. ${h.name} — ${h.starRating}★, rated ${h.avgRating}/10 (${h.reviews} reviews), $${h.price?.total}/night${amenities ? `, ${amenities}` : ""}${nearby}`;
+      const price = parseFloat(h.price?.total || "0");
+      const valueScore = price > 0 && h.avgRating > 0
+        ? (h.avgRating / price * 10).toFixed(2)
+        : null;
+      const valueStr = valueScore ? `, value score: ${valueScore} (higher = better value for money)` : "";
+      return `${i + 1}. ${h.name} — ${h.starRating}★, rated ${h.avgRating}/10 (${h.reviews} reviews), $${price}/night${amenities ? `, ${amenities}` : ""}${valueStr}${nearby}`;
     }).join("\n");
 
     try {
@@ -215,7 +220,7 @@ You cannot verify: views, room sizes, cleanliness scores, noise levels, decor �
 Important: results include all hotels, not just those with confirmed amenities. If the user asked for breakfast/pool/gym/wifi and the recommended hotel doesn't list it, tell them to verify directly with the hotel.
 
 Write 2-3 sentences:
-1. Recommend the single best hotel by name. Cite rating, review count, price, and address any user preference you CAN assess from the data (value, quality, listed amenities).
+1. Recommend the best overall hotel by name — cite rating, review count, price, and any matching listed amenities. If the user asked for value for money and the best-rated hotel is NOT the best value score, also name the best-value hotel and its price as an alternative.
 2. If the user asked for anything you cannot verify (views, cleanliness, room size, central location, etc.), name each one explicitly and tell the user to check the hotel page or reviews to confirm. Do not skip or group vaguely — list them.
 
 Rules: no markdown, no asterisks, plain text only. Never state a fact not derivable from the data.`,
