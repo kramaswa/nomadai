@@ -74,10 +74,17 @@ function mapSerpProperty(prop: any, city: string, adultsNum: number): any {
     prop.images?.[0]?.thumbnail ||
     `https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=1000`;
 
+  // Keep only transit hubs and landmarks — filter out restaurants, hotels, corporate buildings
+  const transitKeywords = ["airport", "station", "metro", "railway", "terminal", "beach", "park", "mall", "fort", "temple", "museum", "lake", "centre", "center", "road", "square", "market"];
   const nearbyPlaces: string = ((prop.nearby_places || []) as any[])
-    .slice(0, 4)
+    .filter((p: any) => {
+      const nameLower = (p.name || "").toLowerCase();
+      const hasTransit = (p.transportations || []).some((t: any) => t.type !== "Walking" || parseInt(t.duration) <= 15);
+      return hasTransit && transitKeywords.some(k => nameLower.includes(k));
+    })
+    .slice(0, 3)
     .map((p: any) => {
-      const t = (p.transportations || [])[0];
+      const t = (p.transportations || []).find((t: any) => t.type === "Walking") || (p.transportations || [])[0];
       return t ? `${p.name} (${t.duration} ${t.type.toLowerCase()})` : p.name;
     })
     .join(", ");
@@ -185,7 +192,7 @@ Output ONLY a valid JSON object. No markdown, no explanation.`,
       return res.status(400).json({ error: "query and hotels are required" });
     }
 
-    const top = hotels.slice(0, 5);
+    const top = hotels.slice(0, 10);
     const hotelList = top.map((h: any, i: number) => {
       const amenities = [
         h.breakfast && "breakfast included",
@@ -199,7 +206,7 @@ Output ONLY a valid JSON object. No markdown, no explanation.`,
     try {
       const response = await anthropic.messages.create({
         model: "claude-haiku-4-5-20251001",
-        max_tokens: 200,
+        max_tokens: 220,
         system: `You are NomadAI, a concise travel recommendation assistant.
 
 The data you have for each hotel: name, star rating, overall rating out of 10, review count, price per night, amenities list, and nearby places with walking/transit times.
