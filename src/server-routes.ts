@@ -166,7 +166,7 @@ EXTRACTION RULES:
 4. checkOutDate: YYYY-MM-DD, after checkInDate. Default ${defaultCheckOut}.
 5. ratings: Array of star ratings. "luxury"/"top rated" -> [4,5]. "4 star" -> [4]. "3 star or better" -> [3,4,5].
 6. minReviewScore: 0-10. "Excellent/Fabulous" -> 8.5, "Very Good" -> 8.0, "Good" -> 7.0.
-7. highReviewCount: true if user wants "popular" or "many reviews".
+7. highReviewCount: true ONLY if user explicitly wants "popular", "well-known", or "most reviewed" hotels. Do NOT set this for phrases like "good reviews" or "great reviews" — those indicate review quality (use minReviewScore instead).
 8. breakfast/pool/gym/wifi/freeCancellation: boolean, true if mentioned. "free wifi"/"wifi included"->"wifi:true". "free cancellation"/"refundable"->"freeCancellation:true".
 9. maxPrice: number if mentioned.
 10. sortBy: "popularity"|"review_score"|"price_ascending"|"distance_from_search"|"value_for_money". "top rated"->"review_score", "cheapest"->"price_ascending", "central"->"distance_from_search", "value for money"->"value_for_money". Default "popularity".
@@ -418,13 +418,10 @@ Rules: no markdown, no asterisks, plain text only. Never state a fact not deriva
         console.log(`[Sort] amenity preference applied, confirmed-first`);
       }
 
-      // High review count filter
+      // High review count: soft sort only — float most-reviewed hotels to top without cutting results.
       if (highReviewCount === "true" && finalHotels.length > 1) {
-        const sorted = [...finalHotels].sort((a, b) => b.reviews - a.reviews);
-        const threshold = sorted[Math.floor(sorted.length * 0.25)]?.reviews || 0;
-        const before = finalHotels.length;
-        finalHotels = finalHotels.filter((h) => h.reviews >= threshold);
-        console.log(`[Filter] highReviewCount: ${before} -> ${finalHotels.length} (threshold: ${threshold})`);
+        finalHotels.sort((a, b) => b.reviews - a.reviews);
+        console.log(`[Sort] highReviewCount: sorted by review count desc`);
       }
 
       res.json({ data: finalHotels });
