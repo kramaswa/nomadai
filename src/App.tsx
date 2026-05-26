@@ -157,7 +157,7 @@ const Hero = () => {
         if (parsed.neighborhood) params.set('neighborhood', parsed.neighborhood);
         navigate(`/search?${params.toString()}`);
       } else {
-        toast.error("Couldn't understand the request. Try being more specific!");
+        toast.error("Please include a city in your search — e.g. 'A romantic stay in Bali with a pool'");
       }
     } catch (err: any) {
       toast.error(err?.message || "Search failed. Please try again.");

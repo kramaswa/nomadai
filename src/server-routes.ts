@@ -180,7 +180,7 @@ Output ONLY a valid JSON object. No markdown, no explanation.`,
       const jsonText = text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
       const parsed = JSON.parse(jsonText);
       if (!parsed.city || parsed.city.trim() === "") {
-        return res.status(400).json({ error: "no_city", message: "Please include a destination city in your search." });
+        return res.status(400).json({ error: "no_city", message: "Please include a city in your search — e.g. 'A romantic stay in Bali with a pool'" });
       }
       res.json(parsed);
     } catch (e: any) {
