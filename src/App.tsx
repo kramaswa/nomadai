@@ -171,7 +171,8 @@ const Hero = () => {
       <div className="absolute inset-0 z-0">
         <img 
           src="https://images.unsplash.com/photo-1768913737629-2ed60e0aad1b?fm=jpg&q=80&w=2000&auto=format&fit=crop"
-          className="w-full h-full object-cover object-top opacity-60"
+          className="w-full h-full object-cover opacity-60"
+          style={{ objectPosition: '60% 30%' }}
           alt="Travel"
           referrerPolicy="no-referrer"
         />
