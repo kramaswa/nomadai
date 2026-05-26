@@ -256,7 +256,7 @@ Output ONLY a valid JSON object with these fields: city, neighborhood, adults, c
     try {
       const response = await anthropic.messages.create({
         model: "claude-haiku-4-5-20251001",
-        max_tokens: 220,
+        max_tokens: 350,
         system: `You are NomadAI, a concise travel recommendation assistant.
 
 The data you have for each hotel: name, star rating, overall rating out of 10, review count, price per night, amenities list, and nearby places with walking/transit times.
