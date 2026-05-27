@@ -243,7 +243,7 @@ Rules:
 - "cheaper" / "budget" -> lower maxPrice or remove star ratings
 - "remove X" / "no X" -> set X to false or remove it
 - "add X" / "with X" -> set X to true
-- "closer to Y" / "near Y" -> update neighborhood to Y
+- "near Y" / "closer to Y" / "in Y" -> if Y is a district or area within the current city, update neighborhood to Y and keep the city. If Y is a different city, region, or country, update city to the most relevant city in Y (e.g. "near Colorado" -> city="Denver", "in Bali" -> city="Bali", "near the Alps" -> city="Innsbruck") and clear neighborhood.
 - "better rated" / "higher reviews" -> increase minReviewScore
 - "more central" -> update sortBy to distance_from_search
 - Date changes: update checkInDate / checkOutDate accordingly
