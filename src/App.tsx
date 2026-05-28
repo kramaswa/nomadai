@@ -1359,7 +1359,7 @@ const Profile = () => {
       toast.success("Preferences saved!");
     } catch (err: any) {
       console.error("Preferences save error:", err?.code, err?.message);
-      toast.error(`Failed to save: ${err?.code || err?.message || "unknown error"}`);
+      toast.error("Failed to save preferences. Please try again.");
     } finally {
       setSaving(false);
     }
@@ -1556,7 +1556,7 @@ export default function App() {
       await signInWithPopup(auth, provider);
     } catch (err: any) {
       console.error("Sign in error:", err?.code, err?.message);
-      toast.error(`Sign in failed: ${err?.code || err?.message || "unknown error"}`);
+      toast.error("Sign in failed. Please try again.");
     }
   };
 
