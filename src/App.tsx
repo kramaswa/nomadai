@@ -1415,13 +1415,13 @@ const Profile = () => {
           ) : (
             <div className="space-y-4">
               {savedHotels.map((hotel: any) => (
-                <Link key={hotel.hotelId} to={`/hotel/${hotel.hotelId}`} className="flex items-center gap-4 bg-white/5 rounded-2xl p-4 hover:bg-white/10 transition-colors">
+                <Link key={hotel.hotelId} to={`/hotel/${hotel.hotelId}`} state={{ hotel }} className="flex items-center gap-4 bg-white/5 rounded-2xl p-4 hover:bg-white/10 transition-colors">
                   <img src={hotel.image} alt={hotel.name} className="w-20 h-16 object-cover rounded-xl flex-shrink-0" referrerPolicy="no-referrer" />
                   <div className="flex-1 min-w-0">
                     <p className="text-white font-semibold truncate">{hotel.name}</p>
                     <p className="text-white/40 text-sm">{hotel.address?.cityName} · {hotel.starRating > 0 ? `${hotel.starRating}★` : ''} {hotel.avgRating > 0 ? `${hotel.avgRating}/10` : ''}</p>
                   </div>
-                  <p className="text-white font-bold flex-shrink-0">${Math.round(hotel.price)}<span className="text-white/40 text-xs font-normal">/night</span></p>
+                  <p className="text-white font-bold flex-shrink-0">${hotel.price?.total || '—'}<span className="text-white/40 text-xs font-normal">/night</span></p>
                 </Link>
               ))}
             </div>
