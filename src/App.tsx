@@ -102,6 +102,9 @@ const Navbar = () => {
       </Link>
       
       <div className="flex items-center gap-6">
+        <Link to="/evals" className="text-xs font-medium text-white/30 hover:text-white/70 transition-colors uppercase tracking-widest">
+          Evals
+        </Link>
         {user ? (
           <>
             <Link to="/profile" className="text-sm font-medium text-white/70 hover:text-white transition-colors flex items-center gap-2">
