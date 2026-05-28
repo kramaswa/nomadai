@@ -332,6 +332,8 @@ const HotelCard = ({ hotel }: { hotel: Hotel; key?: string }) => {
         hotelId: hotel.hotelId,
         hotelName: hotel.name,
         hotelData: hotel,
+        checkIn: cardSearchParams.get('checkIn') || null,
+        checkOut: cardSearchParams.get('checkOut') || null,
         savedAt: serverTimestamp(),
       });
       toast.success(`${hotel.name} saved to your profile!`);
@@ -1355,7 +1357,7 @@ const Profile = () => {
       try {
         const { collection, getDocs, orderBy, query: fsQuery } = await import('firebase/firestore');
         const snap = await getDocs(fsQuery(collection(db, 'users', user.uid, 'savedHotels'), orderBy('savedAt', 'desc')));
-        setSavedHotels(snap.docs.map(d => d.data().hotelData));
+        setSavedHotels(snap.docs.map(d => ({ ...d.data().hotelData, _checkIn: d.data().checkIn, _checkOut: d.data().checkOut })));
       } catch (err) {
         console.error("Failed to load saved hotels:", err);
       } finally {
@@ -1421,7 +1423,10 @@ const Profile = () => {
                     <p className="text-white font-semibold truncate">{hotel.name}</p>
                     <p className="text-white/40 text-sm">{hotel.address?.cityName} · {hotel.starRating > 0 ? `${hotel.starRating}★` : ''} {hotel.avgRating > 0 ? `${hotel.avgRating}/10` : ''}</p>
                   </div>
-                  <p className="text-white font-bold flex-shrink-0">${hotel.price?.total || '—'}<span className="text-white/40 text-xs font-normal">/night</span></p>
+                  <div className="text-right flex-shrink-0">
+                    <p className="text-white font-bold">${hotel.price?.total || '—'}<span className="text-white/40 text-xs font-normal">/night</span></p>
+                    {hotel._checkIn && hotel._checkOut && <p className="text-white/40 text-xs">{hotel._checkIn} – {hotel._checkOut}</p>}
+                  </div>
                 </Link>
               ))}
             </div>
