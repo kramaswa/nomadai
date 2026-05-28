@@ -338,7 +338,9 @@ const HotelCard = ({ hotel }: { hotel: Hotel; key?: string }) => {
       });
       toast.success(`${hotel.name} saved to your profile!`);
     } catch (err) {
-      toast.error("Failed to save hotel.");
+      console.error('HotelCard save error:', err);
+      const msg = err instanceof Error ? err.message : String(err);
+      toast.error(`Save failed: ${msg}`);
     } finally {
       setIsSaving(false);
     }
