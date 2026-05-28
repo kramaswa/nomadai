@@ -1683,22 +1683,6 @@ export default function App() {
             </Routes>
           </main>
 
-          <footer className="border-t border-white/10 py-12 px-6 mt-20">
-            <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
-              <div className="text-xl font-light tracking-tighter text-white/50">
-                CONCIERGE<span className="font-bold">AI</span>
-              </div>
-              <div className="flex gap-8 text-sm text-white/30 font-medium uppercase tracking-widest">
-                <a href="#" className="hover:text-white transition-colors">Privacy</a>
-                <a href="#" className="hover:text-white transition-colors">Terms</a>
-                <a href="#" className="hover:text-white transition-colors">Support</a>
-                <Link to="/evals" className="hover:text-white transition-colors">Evals</Link>
-              </div>
-              <div className="text-white/20 text-xs">
-                © 2026 ConciergeAI. All rights reserved.
-              </div>
-            </div>
-          </footer>
         </div>
       </Router>
     </AuthContext.Provider>
