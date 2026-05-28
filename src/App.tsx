@@ -664,12 +664,12 @@ const HotelDetailPage = () => {
                 {hotel.reviewWord}
               </div>
             )}
-            {hotel.avgRating && hotel.avgRating > 0 && (
+            {(hotel.avgRating ?? 0) > 0 && (
               <div className="bg-blue-600/90 px-3 py-1 rounded-full text-xs font-bold text-white">
-                {hotel.avgRating.toFixed(1)} / 10
+                {hotel.avgRating!.toFixed(1)} / 10
               </div>
             )}
-            {hotel.vfmScore && hotel.vfmScore >= 7.5 && (
+            {(hotel.vfmScore ?? 0) >= 7.5 && (
               <div className="bg-emerald-500/90 px-3 py-1 rounded-full text-xs font-bold text-white flex items-center gap-1">
                 <Sparkles className="w-3 h-3" /> Great Value
               </div>
@@ -679,8 +679,8 @@ const HotelDetailPage = () => {
           <div className="flex items-center gap-2 mt-2 text-white/70">
             <MapPin className="w-4 h-4" />
             <span>{hotel.address?.cityName}</span>
-            {hotel.reviews && hotel.reviews > 0 && (
-              <span className="ml-2 text-white/50">· {hotel.reviews.toLocaleString()} reviews</span>
+            {(hotel.reviews ?? 0) > 0 && (
+              <span className="ml-2 text-white/50">· {hotel.reviews!.toLocaleString()} reviews</span>
             )}
           </div>
         </div>
@@ -833,7 +833,7 @@ const HotelDetailPage = () => {
                 </p>
                 <p className="text-xs uppercase tracking-widest text-white/40 font-bold mt-1">per night</p>
               </div>
-              {hotel.vfmScore && hotel.vfmScore > 0 && (
+              {(hotel.vfmScore ?? 0) > 0 && (
                 <div className={`${hotel.vfmScore >= 7.5 ? 'bg-emerald-500/20 text-emerald-400' : 'bg-white/5 text-white/40'} px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1`}>
                   <Sparkles className="w-3 h-3" />
                   VFM {hotel.vfmScore.toFixed(1)}
@@ -841,13 +841,13 @@ const HotelDetailPage = () => {
               )}
             </div>
 
-            {hotel.avgRating && hotel.avgRating > 0 && (
+            {(hotel.avgRating ?? 0) > 0 && (
               <div className="flex items-center gap-2 text-sm text-white/60 border-t border-white/10 pt-4">
                 <div className="bg-blue-600 text-white font-bold px-2 py-0.5 rounded text-xs">
-                  {hotel.avgRating.toFixed(1)}
+                  {hotel.avgRating!.toFixed(1)}
                 </div>
                 <span>{hotel.reviewWord || 'Rated'}</span>
-                {hotel.reviews && <span className="text-white/30">· {hotel.reviews.toLocaleString()} reviews</span>}
+                {(hotel.reviews ?? 0) > 0 && <span className="text-white/30">· {hotel.reviews!.toLocaleString()} reviews</span>}
               </div>
             )}
 
