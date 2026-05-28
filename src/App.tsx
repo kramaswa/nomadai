@@ -1346,17 +1346,19 @@ const Profile = () => {
   const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
-    if (!user) return;
+    console.log("handleSave called, user:", user?.uid, "prefs:", prefs);
+    if (!user) {
+      toast.error("Not signed in — please sign in and try again.");
+      return;
+    }
     setSaving(true);
     try {
-      await updateDoc(doc(db, 'users', user.uid), {
-        preferences: prefs
-      });
+      await updateDoc(doc(db, 'users', user.uid), { preferences: prefs });
       updateProfile({ preferences: prefs });
       toast.success("Preferences saved!");
-    } catch (err) {
-      handleFirestoreError(err, OperationType.WRITE, `users/${user.uid}`);
-      toast.error("Failed to save preferences.");
+    } catch (err: any) {
+      console.error("Preferences save error:", err?.code, err?.message);
+      toast.error(`Failed to save: ${err?.code || err?.message || "unknown error"}`);
     } finally {
       setSaving(false);
     }
