@@ -526,6 +526,7 @@ const HotelDetailPage = () => {
   const [activePhoto, setActivePhoto] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isSaved, setIsSaved] = useState(fromSearch === 'profile');
 
   const allPhotos = details?.photos?.length
     ? details.photos
@@ -543,20 +544,36 @@ const HotelDetailPage = () => {
       .finally(() => setLoadingDetails(false));
   }, [hotelId]);
 
+  useEffect(() => {
+    if (!user || !hotel || fromSearch === 'profile') return;
+    import('firebase/firestore').then(({ doc, getDoc }) =>
+      getDoc(doc(db, 'users', user.uid, 'savedHotels', hotel.hotelId))
+        .then(snap => setIsSaved(snap.exists()))
+    );
+  }, [user, hotel?.hotelId]);
+
   const handleSave = async () => {
     if (!user || !hotel) { toast.error("Please sign in to save hotels."); return; }
     setIsSaving(true);
     try {
-      const { doc, setDoc, serverTimestamp } = await import('firebase/firestore');
-      await setDoc(doc(db, 'users', user.uid, 'savedHotels', hotel.hotelId), {
-        userId: user.uid,
-        hotelId: hotel.hotelId,
-        hotelName: hotel.name,
-        hotelData: hotel,
-        savedAt: serverTimestamp(),
-      });
-      toast.success(`${hotel.name} saved!`);
-    } catch { toast.error("Failed to save hotel."); }
+      if (isSaved) {
+        const { doc, deleteDoc } = await import('firebase/firestore');
+        await deleteDoc(doc(db, 'users', user.uid, 'savedHotels', hotel.hotelId));
+        setIsSaved(false);
+        toast.success(`${hotel.name} removed from wishlist.`);
+      } else {
+        const { doc, setDoc, serverTimestamp } = await import('firebase/firestore');
+        await setDoc(doc(db, 'users', user.uid, 'savedHotels', hotel.hotelId), {
+          userId: user.uid,
+          hotelId: hotel.hotelId,
+          hotelName: hotel.name,
+          hotelData: hotel,
+          savedAt: serverTimestamp(),
+        });
+        setIsSaved(true);
+        toast.success(`${hotel.name} saved!`);
+      }
+    } catch { toast.error(isSaved ? "Failed to remove hotel." : "Failed to save hotel."); }
     finally { setIsSaving(false); }
   };
 
@@ -863,10 +880,10 @@ const HotelDetailPage = () => {
             <button
               onClick={handleSave}
               disabled={isSaving}
-              className="w-full border border-white/20 hover:border-white/40 text-white py-3 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+              className={`w-full py-3 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors disabled:opacity-50 ${isSaved ? 'bg-orange-500/20 border border-orange-500/50 text-orange-400 hover:bg-red-500/20 hover:border-red-500/50 hover:text-red-400' : 'border border-white/20 hover:border-white/40 text-white'}`}
             >
-              {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Heart className="w-4 h-4" />}
-              Save to Wishlist
+              {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Heart className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />}
+              {isSaved ? 'Saved — click to remove' : 'Save to Wishlist'}
             </button>
 
             <div className="flex flex-wrap gap-2 pt-2 border-t border-white/10">
