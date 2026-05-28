@@ -1417,17 +1417,32 @@ const Profile = () => {
           ) : (
             <div className="space-y-4">
               {savedHotels.map((hotel: any) => (
-                <Link key={hotel.hotelId} to={`/hotel/${hotel.hotelId}`} state={{ hotel }} className="flex items-center gap-4 bg-white/5 rounded-2xl p-4 hover:bg-white/10 transition-colors">
-                  <img src={hotel.image} alt={hotel.name} className="w-20 h-16 object-cover rounded-xl flex-shrink-0" referrerPolicy="no-referrer" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-white font-semibold truncate">{hotel.name}</p>
-                    <p className="text-white/40 text-sm">{hotel.address?.cityName} · {hotel.starRating > 0 ? `${hotel.starRating}★` : ''} {hotel.avgRating > 0 ? `${hotel.avgRating}/10` : ''}</p>
-                  </div>
-                  <div className="text-right flex-shrink-0">
-                    <p className="text-white font-bold">${hotel.price?.total || '—'}<span className="text-white/40 text-xs font-normal">/night</span></p>
-                    {hotel._checkIn && hotel._checkOut && <p className="text-white/40 text-xs">{hotel._checkIn} – {hotel._checkOut}</p>}
-                  </div>
-                </Link>
+                <div key={hotel.hotelId} className="flex items-center gap-4 bg-white/5 rounded-2xl p-4">
+                  <Link to={`/hotel/${hotel.hotelId}`} state={{ hotel }} className="flex items-center gap-4 flex-1 min-w-0 hover:opacity-80 transition-opacity">
+                    <img src={hotel.image} alt={hotel.name} className="w-20 h-16 object-cover rounded-xl flex-shrink-0" referrerPolicy="no-referrer" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white font-semibold truncate">{hotel.name}</p>
+                      <p className="text-white/40 text-sm">{hotel.address?.cityName} · {hotel.starRating > 0 ? `${hotel.starRating}★` : ''} {hotel.avgRating > 0 ? `${hotel.avgRating}/10` : ''}</p>
+                    </div>
+                    <div className="text-right flex-shrink-0 mr-4">
+                      <p className="text-white font-bold">${hotel.price?.total || '—'}<span className="text-white/40 text-xs font-normal">/night</span></p>
+                      {hotel._checkIn && hotel._checkOut && <p className="text-white/40 text-xs">{hotel._checkIn} – {hotel._checkOut}</p>}
+                    </div>
+                  </Link>
+                  <button
+                    onClick={async () => {
+                      try {
+                        const { doc, deleteDoc } = await import('firebase/firestore');
+                        await deleteDoc(doc(db, 'users', user!.uid, 'savedHotels', hotel.hotelId));
+                        setSavedHotels(prev => prev.filter(h => h.hotelId !== hotel.hotelId));
+                      } catch { toast.error("Failed to remove hotel."); }
+                    }}
+                    className="text-white/30 hover:text-red-400 transition-colors flex-shrink-0 p-1"
+                    title="Remove"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
               ))}
             </div>
           )}
