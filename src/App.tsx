@@ -339,8 +339,7 @@ const HotelCard = ({ hotel }: { hotel: Hotel; key?: string }) => {
       toast.success(`${hotel.name} saved to your profile!`);
     } catch (err) {
       console.error('HotelCard save error:', err);
-      const msg = err instanceof Error ? err.message : String(err);
-      toast.error(`Save failed: ${msg}`);
+      toast.error("Couldn't save hotel. Please try again.");
     } finally {
       setIsSaving(false);
     }
@@ -579,8 +578,7 @@ const HotelDetailPage = () => {
       }
     } catch (err) {
       console.error('Save/remove error:', err);
-      const msg = err instanceof Error ? err.message : String(err);
-      toast.error(`Save failed: ${msg}`);
+      toast.error(isSaved ? "Couldn't remove hotel. Please try again." : "Couldn't save hotel. Please try again.");
     }
     finally { setIsSaving(false); }
   };
