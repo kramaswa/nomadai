@@ -574,9 +574,28 @@ Rules: no markdown, no asterisks, plain text only. Never state a fact not deriva
             .slice(0, 8)
         : [];
 
+      let description = data.description || "";
+      if (!description && data.name) {
+        const amenityList = (data.amenities || []).slice(0, 6).join(", ");
+        const stars = data.hotel_class ? `${data.hotel_class}-star` : "";
+        const rating = data.overall_rating ? `${(data.overall_rating * 2).toFixed(1)}/10 guest rating` : "";
+        const prompt = `Write a 2-3 sentence hotel description for "${data.name}", a ${stars} hotel. ${amenityList ? `Amenities include: ${amenityList}.` : ""} ${rating ? `It has a ${rating}.` : ""} Be factual, warm, and professional. No markdown.`;
+        try {
+          const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+          const msg = await anthropic.messages.create({
+            model: "claude-haiku-4-5-20251001",
+            max_tokens: 120,
+            messages: [{ role: "user", content: prompt }],
+          });
+          description = (msg.content[0] as any).text?.trim() || "";
+        } catch {
+          description = "";
+        }
+      }
+
       res.json({
         hotelId,
-        description: data.description || "",
+        description,
         photos,
         facilities,
         reviewBreakdown,
